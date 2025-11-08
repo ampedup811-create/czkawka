@@ -14,7 +14,7 @@ pub fn connect_button_symlink(gui_data: &GuiData) {
     let tree_view_similar_images_finder = gui_data.main_notebook.tree_view_similar_images_finder.clone();
     let tree_view_same_music_finder = gui_data.main_notebook.tree_view_same_music_finder.clone();
 
-    let image_preview_similar_images = gui_data.main_notebook.image_preview_similar_images.clone();
+    let box_image_preview_similar_images = gui_data.main_notebook.box_image_preview_similar_images.clone();
     let image_preview_duplicates = gui_data.main_notebook.image_preview_duplicates.clone();
 
     buttons_symlink.connect_clicked(move |_| match to_notebook_main_enum(notebook_main.current_page().unwrap()) {
@@ -51,7 +51,7 @@ pub fn connect_button_symlink(gui_data: &GuiData) {
                 false,
                 &gui_data,
             );
-            image_preview_similar_images.hide();
+            box_image_preview_similar_images.hide();
         }
         e => panic!("Not existent {:?}", e),
     });

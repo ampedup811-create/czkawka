@@ -21,7 +21,7 @@ pub fn connect_button_move(gui_data: &GuiData) {
     let tree_view_invalid_symlinks = gui_data.main_notebook.tree_view_invalid_symlinks.clone();
     let tree_view_broken_files = gui_data.main_notebook.tree_view_broken_files.clone();
 
-    let image_preview_similar_images = gui_data.main_notebook.image_preview_similar_images.clone();
+    let box_image_preview_similar_images = gui_data.main_notebook.box_image_preview_similar_images.clone();
 
     buttons_move.connect_clicked(move |_| match to_notebook_main_enum(notebook_main.current_page().unwrap()) {
         NotebookMainEnum::Duplicate => {
@@ -53,7 +53,7 @@ pub fn connect_button_move(gui_data: &GuiData) {
                 ColumnsSimilarImages::ActiveSelectButton as i32,
                 &gui_data,
             );
-            image_preview_similar_images.hide();
+            box_image_preview_similar_images.hide();
         }
         NotebookMainEnum::BigFiles => {
             move_things(

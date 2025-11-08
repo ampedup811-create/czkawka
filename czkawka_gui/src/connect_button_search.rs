@@ -84,7 +84,7 @@ pub fn connect_button_search(
     let progress_bar_current_stage = gui_data.progress_window.progress_bar_current_stage.clone();
     let progress_bar_all_stages = gui_data.progress_window.progress_bar_all_stages.clone();
     let taskbar_state = gui_data.taskbar_state.clone();
-    let image_preview_similar_images = gui_data.main_notebook.image_preview_similar_images.clone();
+    let box_image_preview_similar_images = gui_data.main_notebook.box_image_preview_similar_images.clone();
     let radio_button_hash_type_blake3 = gui_data.main_notebook.radio_button_hash_type_blake3.clone();
     let radio_button_hash_type_crc32 = gui_data.main_notebook.radio_button_hash_type_crc32.clone();
     let radio_button_hash_type_xxh3 = gui_data.main_notebook.radio_button_hash_type_xxh3.clone();
@@ -273,7 +273,7 @@ pub fn connect_button_search(
                 });
             }
             NotebookMainEnum::SimilarImages => {
-                image_preview_similar_images.hide();
+                box_image_preview_similar_images.hide();
 
                 label_stage.show();
                 grid_progress_stages.show_all();

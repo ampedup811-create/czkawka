@@ -26,7 +26,7 @@ pub fn connect_button_delete(gui_data: &GuiData) {
     let tree_view_broken_files = gui_data.main_notebook.tree_view_broken_files.clone();
     let check_button_settings_confirm_deletion = gui_data.settings.check_button_settings_confirm_deletion.clone();
     let check_button_settings_confirm_group_deletion = gui_data.settings.check_button_settings_confirm_group_deletion.clone();
-    let image_preview_similar_images = gui_data.main_notebook.image_preview_similar_images.clone();
+    let box_image_preview_similar_images = gui_data.main_notebook.box_image_preview_similar_images.clone();
 
     buttons_delete.connect_clicked(move |_| {
         if !check_if_can_delete_files(&check_button_settings_confirm_deletion, &window_main) {
@@ -102,7 +102,7 @@ pub fn connect_button_delete(gui_data: &GuiData) {
                         ColumnsSimilarImages::ActiveSelectButton as i32,
                         &gui_data,
                     );
-                    image_preview_similar_images.hide();
+                    box_image_preview_similar_images.hide();
                 }
             }
             NotebookMainEnum::Zeroed => {
