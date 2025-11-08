@@ -17,7 +17,7 @@ pub fn connect_button_hardlink(gui_data: &GuiData) {
     let tree_view_similar_images_finder = gui_data.main_notebook.tree_view_similar_images_finder.clone();
     let tree_view_same_music_finder = gui_data.main_notebook.tree_view_same_music_finder.clone();
 
-    let image_preview_similar_images = gui_data.main_notebook.image_preview_similar_images.clone();
+    let box_image_preview_similar_images = gui_data.main_notebook.box_image_preview_similar_images.clone();
 
     buttons_hardlink.connect_clicked(move |_| match to_notebook_main_enum(notebook_main.current_page().unwrap()) {
         NotebookMainEnum::Duplicate => {
@@ -52,7 +52,7 @@ pub fn connect_button_hardlink(gui_data: &GuiData) {
                 true,
                 &gui_data,
             );
-            image_preview_similar_images.hide();
+            box_image_preview_similar_images.hide();
         }
         e => panic!("Not existent {:?}", e),
     });

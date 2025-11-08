@@ -47,7 +47,9 @@ pub fn initialize_gui(gui_data: &mut GuiData) {
         let scrolled_window_zeroed_files_finder = gui_data.main_notebook.scrolled_window_zeroed_files_finder.clone();
         let scrolled_window_broken_files = gui_data.main_notebook.scrolled_window_broken_files.clone();
 
-        let image_preview_similar_images = gui_data.main_notebook.image_preview_similar_images.clone();
+        let box_image_preview_similar_images = gui_data.main_notebook.box_image_preview_similar_images.clone();
+        let image_preview_similar_images_left = gui_data.main_notebook.image_preview_similar_images_left.clone();
+        let image_preview_similar_images_right = gui_data.main_notebook.image_preview_similar_images_right.clone();
         let image_preview_duplicates = gui_data.main_notebook.image_preview_duplicates.clone();
         let check_button_settings_show_preview_similar_images = gui_data.settings.check_button_settings_show_preview_similar_images.clone();
         let check_button_settings_show_preview_duplicates = gui_data.settings.check_button_settings_show_preview_duplicates.clone();
@@ -272,8 +274,10 @@ pub fn initialize_gui(gui_data: &mut GuiData) {
             }
             // Similar Images
             {
-                let image_preview_similar_images_clone = image_preview_similar_images.clone();
-                image_preview_similar_images.hide();
+                let box_image_preview_clone = box_image_preview_similar_images.clone();
+                let image_preview_left_clone = image_preview_similar_images_left.clone();
+                let image_preview_right_clone = image_preview_similar_images_right.clone();
+                box_image_preview_similar_images.hide();
 
                 let col_types: [glib::types::Type; 12] = [
                     glib::types::Type::BOOL,
@@ -300,12 +304,21 @@ pub fn initialize_gui(gui_data: &mut GuiData) {
 
                 tree_view.connect_button_press_event(opening_double_click_function_similar_images);
                 tree_view.connect_key_press_event(opening_enter_function_similar_images);
+                
+                let box_image_preview_clone2 = box_image_preview_clone.clone();
+                let image_preview_left_clone2 = image_preview_left_clone.clone();
+                let image_preview_right_clone2 = image_preview_right_clone.clone();
+                let text_view_errors_clone = text_view_errors.clone();
+                let check_button_settings_show_preview_similar_images_clone = check_button_settings_show_preview_similar_images.clone();
+                
                 tree_view.connect_button_release_event(move |tree_view, _event| {
-                    show_preview(
+                    show_preview_similar_images(
                         tree_view,
-                        &text_view_errors,
-                        &check_button_settings_show_preview_similar_images,
-                        &image_preview_similar_images,
+                        &text_view_errors_clone,
+                        &check_button_settings_show_preview_similar_images_clone,
+                        &box_image_preview_clone2,
+                        &image_preview_left_clone2,
+                        &image_preview_right_clone2,
                         ColumnsSimilarImages::Path as i32,
                         ColumnsSimilarImages::Name as i32,
                     );
@@ -316,7 +329,9 @@ pub fn initialize_gui(gui_data: &mut GuiData) {
                 scrolled_window_similar_images_finder.add(&tree_view);
                 scrolled_window_similar_images_finder.show_all();
 
-                let image_preview_similar_images = image_preview_similar_images_clone.clone();
+                let box_image_preview = box_image_preview_similar_images.clone();
+                let image_preview_left = image_preview_similar_images_left.clone();
+                let image_preview_right = image_preview_similar_images_right.clone();
                 let text_view_errors = gui_data.text_view_errors.clone();
                 let check_button_settings_show_preview_similar_images = gui_data.settings.check_button_settings_show_preview_similar_images.clone();
                 let gui_data = gui_data.clone();
@@ -349,14 +364,16 @@ pub fn initialize_gui(gui_data: &mut GuiData) {
                                 ColumnsSimilarImages::ActiveSelectButton as i32,
                                 &gui_data,
                             );
-                            image_preview_similar_images_clone.hide();
+                            box_image_preview_clone.hide();
                         }
                     }
-                    show_preview(
+                    show_preview_similar_images(
                         tree_view,
                         &text_view_errors,
                         &check_button_settings_show_preview_similar_images,
-                        &image_preview_similar_images,
+                        &box_image_preview,
+                        &image_preview_left,
+                        &image_preview_right,
                         ColumnsSimilarImages::Path as i32,
                         ColumnsSimilarImages::Name as i32,
                     );
@@ -706,4 +723,130 @@ fn show_preview(tree_view: &TreeView, text_view_errors: &TextView, check_button_
     } else {
         image_preview_similar_images.hide();
     }
+}
+
+fn show_preview_similar_images(
+    tree_view: &TreeView,
+    text_view_errors: &TextView,
+    check_button_settings_show_preview: &CheckButton,
+    box_image_preview: &gtk::Box,
+    image_preview_left: &Image,
+    image_preview_right: &Image,
+    column_path: i32,
+    column_name: i32,
+) {
+    let (selected_rows, tree_model) = tree_view.selection().selected_rows();
+
+    let mut created_images = false;
+
+    // Show preview when one or two items are selected
+    if (selected_rows.len() == 1 || selected_rows.len() == 2) && check_button_settings_show_preview.is_active() {
+        if let Some(proj_dirs) = ProjectDirs::from("pl", "Qarmin", "Czkawka") {
+            // TODO labels on {} are in testing stage, so we just ignore for now this warning until found better idea how to fix this
+            #[allow(clippy::never_loop)]
+            'dir: loop {
+                let cache_dir = proj_dirs.cache_dir();
+                if cache_dir.exists() {
+                    if !cache_dir.is_dir() {
+                        add_text_to_text_view(text_view_errors, format!("Path {} doesn't point at folder, which is needed by image preview", cache_dir.display()).as_str());
+                        break 'dir;
+                    }
+                } else if let Err(e) = fs::create_dir_all(cache_dir) {
+                    add_text_to_text_view(text_view_errors, format!("Failed to create dir {} needed by image preview, reason {}", cache_dir.display(), e).as_str());
+                    break 'dir;
+                }
+
+                // Load first image
+                let tree_path_first = selected_rows[0].clone();
+                let path_first = tree_model.value(&tree_model.iter(&tree_path_first).unwrap(), column_path).get::<String>().unwrap();
+                let name_first = tree_model.value(&tree_model.iter(&tree_path_first).unwrap(), column_name).get::<String>().unwrap();
+                let file_name_first = format!("{}/{}", path_first, name_first);
+
+                if !load_and_display_image(&file_name_first, image_preview_left, &cache_dir, text_view_errors, "left") {
+                    break 'dir;
+                }
+
+                // Load second image if two are selected
+                if selected_rows.len() == 2 {
+                    let tree_path_second = selected_rows[1].clone();
+                    let path_second = tree_model.value(&tree_model.iter(&tree_path_second).unwrap(), column_path).get::<String>().unwrap();
+                    let name_second = tree_model.value(&tree_model.iter(&tree_path_second).unwrap(), column_name).get::<String>().unwrap();
+                    let file_name_second = format!("{}/{}", path_second, name_second);
+
+                    if !load_and_display_image(&file_name_second, image_preview_right, &cache_dir, text_view_errors, "right") {
+                        break 'dir;
+                    }
+                    image_preview_right.show();
+                } else {
+                    // Hide right image if only one is selected
+                    image_preview_right.hide();
+                }
+
+                created_images = true;
+                break 'dir;
+            }
+        }
+    }
+
+    if created_images {
+        box_image_preview.show();
+    } else {
+        box_image_preview.hide();
+    }
+}
+
+fn load_and_display_image(file_path: &str, image_widget: &Image, cache_dir: &Path, text_view_errors: &TextView, suffix: &str) -> bool {
+    if let Some(extension) = Path::new(file_path).extension() {
+        if !["jpg", "jpeg", "png", "bmp", "tiff", "tif", "tga", "ff", "gif", "jif", "jfi"].contains(&extension.to_string_lossy().to_string().to_lowercase().as_str()) {
+            return false;
+        }
+
+        let img = match image::open(&file_path) {
+            Ok(t) => t,
+            Err(e) => {
+                add_text_to_text_view(text_view_errors, format!("Failed to open temporary image file {}, reason {}", file_path, e).as_str());
+                return false;
+            }
+        };
+
+        if img.width() == 0 || img.height() == 0 {
+            add_text_to_text_view(text_view_errors, format!("Cannot create preview of image {}, with 0 width or height", file_path).as_str());
+            return false;
+        }
+
+        let ratio = img.width() / img.height();
+        let requested_dimensions = (400, 400);
+        let new_size;
+        match ratio.cmp(&(requested_dimensions.0 / requested_dimensions.1)) {
+            Ordering::Greater => {
+                new_size = (requested_dimensions.0, (img.height() * requested_dimensions.0) / img.width());
+            }
+            Ordering::Less => {
+                new_size = ((img.width() * requested_dimensions.1) / img.height(), requested_dimensions.1);
+            }
+            Ordering::Equal => {
+                new_size = requested_dimensions;
+            }
+        }
+        let new_size = (std::cmp::max(new_size.0, 1), std::cmp::max(new_size.1, 1));
+
+        let img = img.resize(new_size.0, new_size.1, FilterType::Triangle);
+        let file_dir = cache_dir.join(format!("cached_file_{}_{}.{}", suffix, std::process::id(), extension.to_string_lossy().to_lowercase()));
+
+        if let Err(e) = img.save(&file_dir) {
+            add_text_to_text_view(text_view_errors, format!("Failed to save temporary image file to {}, reason {}", file_dir.display(), e).as_str());
+            let _ = fs::remove_file(&file_dir);
+            return false;
+        }
+
+        let string_dir = file_dir.to_string_lossy().to_string();
+        image_widget.set_from_file(string_dir);
+
+        if let Err(e) = fs::remove_file(&file_dir) {
+            add_text_to_text_view(text_view_errors, format!("Failed to delete temporary image file to {}, reason {}", file_dir.display(), e).as_str());
+        }
+
+        return true;
+    }
+    false
 }
