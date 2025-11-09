@@ -99,7 +99,7 @@ impl ImageComparisonWindow {
 
         // Limit to 4 images
         let num_images = selected_paths.len().min(4);
-        
+
         // Determine layout: 2x1 for 2 images, 2x2 for 3-4 images
         let num_rows = if num_images <= 2 { 1 } else { 2 };
         let num_cols = 2;
@@ -135,11 +135,11 @@ impl ImageComparisonWindow {
 
         // Image widget
         let image_widget = Image::new();
-        
+
         // Load and scale image
         if let Ok(img) = image::open(&file_path) {
             let (width, height) = img.dimensions();
-            
+
             // Calculate scaled dimensions (max 400x400 while preserving aspect ratio)
             let requested_dimensions = (400_u32, 400_u32);
             let new_size = if width > height {
@@ -153,14 +153,12 @@ impl ImageComparisonWindow {
             };
 
             let img_resized = img.resize(new_size.0, new_size.1, FilterType::Triangle);
-            
+
             // Save to temporary location and load into GTK Image
             if let Some(cache_dir) = Self::get_cache_dir() {
                 if let Some(extension) = Path::new(&file_path).extension() {
-                    let temp_file = cache_dir.join(format!("compare_{}.{}", 
-                        std::process::id(), 
-                        extension.to_string_lossy()));
-                    
+                    let temp_file = cache_dir.join(format!("compare_{}.{}", std::process::id(), extension.to_string_lossy()));
+
                     if img_resized.save(&temp_file).is_ok() {
                         image_widget.set_from_file(&temp_file);
                         let _ = fs::remove_file(&temp_file);
@@ -269,30 +267,18 @@ pub fn show_comparison_window_for_similar_images(gui_data: &GuiData) {
 
     if selected_rows.len() < 2 || selected_rows.len() > 4 {
         // Show error message
-        add_text_to_text_view(
-            &gui_data.text_view_errors,
-            "Please select 2 to 4 images to compare.",
-        );
+        add_text_to_text_view(&gui_data.text_view_errors, "Please select 2 to 4 images to compare.");
         return;
     }
 
     let mut selected_paths = Vec::new();
     for tree_path in &selected_rows {
         if let Some(iter) = tree_model.iter(tree_path) {
-            let path = tree_model
-                .value(&iter, ColumnsSimilarImages::Path as i32)
-                .get::<String>()
-                .unwrap_or_default();
-            let name = tree_model
-                .value(&iter, ColumnsSimilarImages::Name as i32)
-                .get::<String>()
-                .unwrap_or_default();
-            
+            let path = tree_model.value(&iter, ColumnsSimilarImages::Path as i32).get::<String>().unwrap_or_default();
+            let name = tree_model.value(&iter, ColumnsSimilarImages::Name as i32).get::<String>().unwrap_or_default();
+
             // Skip header rows
-            let color = tree_model
-                .value(&iter, ColumnsSimilarImages::Color as i32)
-                .get::<String>()
-                .unwrap_or_default();
+            let color = tree_model.value(&iter, ColumnsSimilarImages::Color as i32).get::<String>().unwrap_or_default();
             if color == HEADER_ROW_COLOR {
                 continue;
             }
@@ -302,17 +288,14 @@ pub fn show_comparison_window_for_similar_images(gui_data: &GuiData) {
     }
 
     if selected_paths.len() < 2 || selected_paths.len() > 4 {
-        add_text_to_text_view(
-            &gui_data.text_view_errors,
-            "Please select 2 to 4 non-header images to compare.",
-        );
+        add_text_to_text_view(&gui_data.text_view_errors, "Please select 2 to 4 non-header images to compare.");
         return;
     }
 
     // Create and show comparison window
     let comparison_window = ImageComparisonWindow::new();
     comparison_window.show_images(selected_paths);
-    
+
     // Connect delete button
     let gui_data_clone = gui_data.clone();
     let tree_view_clone = tree_view.clone();
@@ -323,7 +306,7 @@ pub fn show_comparison_window_for_similar_images(gui_data: &GuiData) {
         window_clone.close();
     });
 
-    // Connect save button  
+    // Connect save button
     let gui_data_clone2 = gui_data.clone();
     comparison_window.connect_save_button(move || {
         // Implement save functionality here

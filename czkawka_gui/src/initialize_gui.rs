@@ -307,19 +307,19 @@ pub fn initialize_gui(gui_data: &mut GuiData) {
                         opening_double_click_function_similar_images(tree_view, event);
                     } else if event.event_type() == gdk::EventType::DoubleButtonPress && event.button() == 3 {
                         opening_double_click_function_similar_images(tree_view, event);
-                    } 
+                    }
                     // Handle right-click for context menu (single click)
                     else if event.event_type() == gdk::EventType::ButtonPress && event.button() == 3 {
                         let (selected_rows, _) = tree_view.selection().selected_rows();
                         if selected_rows.len() >= 2 && selected_rows.len() <= 4 {
                             let menu = gtk::Menu::new();
                             let menu_item = gtk::MenuItem::with_label("Compare Selected");
-                            
+
                             let gui_data_clone = gui_data_for_menu.clone();
                             menu_item.connect_activate(move |_| {
                                 crate::image_comparison_window::show_comparison_window_for_similar_images(&gui_data_clone);
                             });
-                            
+
                             menu.append(&menu_item);
                             menu.show_all();
                             menu.popup_at_pointer(Some(event));
@@ -328,7 +328,7 @@ pub fn initialize_gui(gui_data: &mut GuiData) {
                     }
                     gtk::Inhibit(false)
                 });
-                
+
                 tree_view.connect_key_press_event(opening_enter_function_similar_images);
                 tree_view.connect_button_release_event(move |tree_view, _event| {
                     show_preview(
