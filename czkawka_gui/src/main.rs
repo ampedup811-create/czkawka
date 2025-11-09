@@ -32,6 +32,7 @@ mod gui_progress_dialog;
 mod gui_settings;
 mod gui_upper_notepad;
 mod help_functions;
+mod image_comparison_window;
 mod initialize_gui;
 mod notebook_enums;
 mod saving_loading;
