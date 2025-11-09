@@ -5,6 +5,7 @@ use crate::gui_data::*;
 use crate::help_functions::*;
 use czkawka_core::similar_images::SIMILAR_VALUES;
 use directories_next::ProjectDirs;
+use gdk;
 use gtk::prelude::*;
 use gtk::{CheckButton, Image, SelectionMode, TextView, TreeView};
 use image::imageops::FilterType;
@@ -298,7 +299,36 @@ pub fn initialize_gui(gui_data: &mut GuiData) {
 
                 create_tree_view_similar_images(&mut tree_view);
 
-                tree_view.connect_button_press_event(opening_double_click_function_similar_images);
+                // Combined button press event handler for double-click and right-click menu
+                let gui_data_for_menu = gui_data.clone();
+                tree_view.connect_button_press_event(move |tree_view, event| {
+                    // Handle double-clicks (existing functionality)
+                    if event.event_type() == gdk::EventType::DoubleButtonPress && event.button() == 1 {
+                        opening_double_click_function_similar_images(tree_view, event);
+                    } else if event.event_type() == gdk::EventType::DoubleButtonPress && event.button() == 3 {
+                        opening_double_click_function_similar_images(tree_view, event);
+                    } 
+                    // Handle right-click for context menu (single click)
+                    else if event.event_type() == gdk::EventType::ButtonPress && event.button() == 3 {
+                        let (selected_rows, _) = tree_view.selection().selected_rows();
+                        if selected_rows.len() >= 2 && selected_rows.len() <= 4 {
+                            let menu = gtk::Menu::new();
+                            let menu_item = gtk::MenuItem::with_label("Compare Selected");
+                            
+                            let gui_data_clone = gui_data_for_menu.clone();
+                            menu_item.connect_activate(move |_| {
+                                crate::image_comparison_window::show_comparison_window_for_similar_images(&gui_data_clone);
+                            });
+                            
+                            menu.append(&menu_item);
+                            menu.show_all();
+                            menu.popup_at_pointer(Some(event));
+                            return gtk::Inhibit(true);
+                        }
+                    }
+                    gtk::Inhibit(false)
+                });
+                
                 tree_view.connect_key_press_event(opening_enter_function_similar_images);
                 tree_view.connect_button_release_event(move |tree_view, _event| {
                     show_preview(
