@@ -1,6 +1,7 @@
 use crate::gui_data::GuiData;
 use crate::help_functions::*;
 use chrono::DateTime;
+use gdk;
 use gtk::prelude::*;
 use gtk::{Align, Box as GtkBox, Button, Image, Label, Orientation, ScrolledWindow, Window, WindowPosition, WindowType};
 use image::imageops::FilterType;
@@ -101,7 +102,6 @@ impl ImageComparisonWindow {
         let num_images = selected_paths.len().min(4);
 
         // Determine layout: 2x1 for 2 images, 2x2 for 3-4 images
-        let num_rows = if num_images <= 2 { 1 } else { 2 };
         let num_cols = 2;
 
         let mut current_row_box: Option<GtkBox> = None;
@@ -301,16 +301,16 @@ pub fn show_comparison_window_for_similar_images(gui_data: &GuiData) {
     let tree_view_clone = tree_view.clone();
     let window_clone = comparison_window.window.clone();
     comparison_window.connect_delete_button(move || {
-        // Implement delete functionality here
-        // This would integrate with existing delete functionality
+        // TODO: Integrate with existing delete functionality from connect_button_delete.rs
+        // For now, just close the window
         window_clone.close();
     });
 
     // Connect save button
     let gui_data_clone2 = gui_data.clone();
     comparison_window.connect_save_button(move || {
-        // Implement save functionality here
-        // This would integrate with existing save functionality
+        // TODO: Integrate with existing save functionality from connect_button_save.rs
+        // This would allow users to save the comparison results
     });
 
     comparison_window.show_window();
